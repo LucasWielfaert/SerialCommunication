@@ -198,7 +198,7 @@ namespace SerialCommunication
                 {
                     string commando = String.Format("set pwm9 {0}", trackBarPWM9.Value);  // set pwm9 waarde 0 ... 255
                     serialPortArduino.WriteLine(commando);
-                    
+
                 }
             }
             catch (Exception exception)
@@ -253,11 +253,15 @@ namespace SerialCommunication
         private void tabControl_SelectedIndexChanged(object sender, EventArgs e)
         {
             timerOefening3.Enabled = tabControl.SelectedIndex == 3;
-            
+            timerOefening4.Enabled = tabControl.SelectedIndex == 4;
+            timerOefening5.Enabled = tabControl.SelectedIndex == 5;
+
         }
 
         private void timerOefening3_Tick(object sender, EventArgs e)
         {
+            
+
             try
             {
                 if (serialPortArduino.IsOpen)
@@ -280,5 +284,115 @@ namespace SerialCommunication
                 buttonConnect.Text = "Connect";
             }
         }
+
+        private void timerOefening4_Tick(object sender, EventArgs e)
+        {
+
+            try
+            {
+                if (serialPortArduino.IsOpen)
+                {
+                    serialPortArduino.ReadExisting();
+                    string commando = "get a0";
+                    serialPortArduino.WriteLine(commando);
+                    string antwoord = serialPortArduino.ReadLine();
+                    antwoord = antwoord.TrimEnd();
+                    antwoord = antwoord.Substring(4);
+
+                    int value = int.Parse(antwoord);
+                    labelAnalog0.Text = value.ToString();
+
+
+
+                }
+            }
+            catch (Exception exception)
+            {
+                labelStatus.Text = "Error: " + exception.Message;
+                serialPortArduino.Close();
+                radioButtonVerbonden.Checked = false;
+                buttonConnect.Text = "Connect";
+            }
+        }
+
+        private void timerOefening5_Tick(object sender, EventArgs e)
+        {
+            try
+            {
+                if (serialPortArduino.IsOpen)
+                {
+
+                    serialPortArduino.ReadExisting();
+
+                    
+                    string commando = "get a0";
+                    serialPortArduino.WriteLine(commando);
+
+                    string antwoord = serialPortArduino.ReadLine();
+
+                    antwoord = antwoord.TrimEnd();
+                    antwoord = antwoord.Substring(4);
+
+                    // Omzetten naar int
+                    int value = int.Parse(antwoord);
+
+                    // Rico
+                    double rico = (45.0 - 5.0) / (1023.0 - 0.0);
+
+                   
+                    double offset = 5.0;
+
+                    
+                    double gewensteTemp = (value * rico) + offset;
+
+                   
+                    gewensteTemp = Math.Round(gewensteTemp, 1);
+
+                    // Weergeven in label
+                    labelGewensteTemp.Text = gewensteTemp.ToString("0.0") + " °C";
+                    string commando2 = "get a1";
+                    serialPortArduino.WriteLine(commando2);
+
+                    string antwoord2 = serialPortArduino.ReadLine();
+
+                    antwoord2 = antwoord2.TrimEnd();
+                    antwoord2 = antwoord2.Substring(4);
+
+
+                    int value2 = int.Parse(antwoord2);
+                    double rico2 = (500.0 - 0.0) / (1023.0 - 0.0);
+
+                    
+                    double offset2 = 0.0;
+
+                    
+                    double huidigeTemp = (value2 * rico2) + offset2;
+
+                     
+                    huidigeTemp = Math.Round(huidigeTemp, 1);
+
+                    
+                    labelHuidigeTemp.Text = huidigeTemp.ToString("0.0") + " °C";
+
+                    if (huidigeTemp < gewensteTemp)
+                    {
+                        
+                        serialPortArduino.WriteLine("set d2 1");
+                    }
+                    else
+                    {
+                        
+                        serialPortArduino.WriteLine("set d2 0");
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                labelStatus.Text = "Error: " + exception.Message;
+                serialPortArduino.Close();
+                radioButtonVerbonden.Checked = false;
+                buttonConnect.Text = "Connect";
+            }
+        }
     }
-    }
+}
